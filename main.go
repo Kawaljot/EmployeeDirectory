@@ -24,14 +24,13 @@ func main() {
 	lambda.Start(router)
 }
 
-func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {	
+func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	proceed, employeeData := authenticate(req.Headers["Author"])
-	println(req.Path)
 
 	if proceed {
 		HTTPMethod := ""
 		if strings.Contains(req.Path, "changePassword") {
-			println("ChangePassword")
+
 			HTTPMethod = "PUTPassword"
 		} else if req.HTTPMethod == "GET" && req.Path == "/employees" {
 			HTTPMethod = "GETAll"
@@ -78,7 +77,7 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 
 func authenticate(AuthorizationHeader string) (bool, *employee) {
 	request := new(employee)
-	println(AuthorizationHeader)
+
 	if AuthorizationHeader != "" {
 
 		authHeader := strings.Split(AuthorizationHeader, "Basic ")
@@ -88,7 +87,7 @@ func authenticate(AuthorizationHeader string) (bool, *employee) {
 		}
 
 		decodedString, err := base64.StdEncoding.DecodeString(authHeader[1])
-		println(decodedString)
+
 		if err != nil {
 			return false, request
 		}
@@ -132,8 +131,6 @@ func HashPassword(password string) (string, error) {
 }
 
 func CheckHash(password, hash string) bool {
-	println(password)
-	println(hash)
 
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
@@ -226,11 +223,6 @@ func create(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 }
 
 func updatePwd(req events.APIGatewayProxyRequest, emp *employee) (events.APIGatewayProxyResponse, error) {
-
-	println(req.PathParameters["username"] != "" && (req.PathParameters["username"] == emp.UserName || emp.EmployeeType == "Admin"))
-	println(req.PathParameters["username"] != "")
-	println((req.PathParameters["username"] == emp.UserName || emp.EmployeeType == "Admin"))
-	println(emp.UserName)
 
 	if req.PathParameters["username"] != "" && (req.PathParameters["username"] == emp.UserName || emp.EmployeeType == "Admin") {
 		if req.Headers["Content-Type"] != "application/json" {

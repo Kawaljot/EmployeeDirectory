@@ -49,7 +49,7 @@ func getEmployeedata(username string) (*details, error) {
 }
 
 func deleteEmployee(username string) error {
-	println(username)
+
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"UserName": {
@@ -101,11 +101,7 @@ func createEmployee(emp *employee) error {
 		},
 	}
 
-	response, err := db.PutItem(input)
-
-	println(response.GoString())
-	println(response.Attributes)
-	println(err)
+	_, err := db.PutItem(input)
 
 	return err
 }
