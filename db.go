@@ -67,7 +67,6 @@ func deleteEmployee(username string) error {
 	return err
 }
 
-// Add an employee record to DynamoDB.
 func createEmployee(emp *employee) error {
 
 	Salt := RandStringRunes()
@@ -83,8 +82,8 @@ func createEmployee(emp *employee) error {
 			"UserName": {
 				S: aws.String(emp.UserName),
 			},
-			"Name": {
-				S: aws.String(emp.Name),
+			"FullName": {
+				S: aws.String(emp.FullName),
 			},
 			"PhoneNumber": {
 				S: aws.String(emp.PhoneNumber),
@@ -119,13 +118,18 @@ func updateEmployeePassword(details *updatePassword) error {
 		Key: map[string]*dynamodb.AttributeValue{
 			"UserName": {
 				S: aws.String(details.UserName),
-			}, "Password": {
+			},
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":Password": {
 				S: aws.String(Password),
 			},
-			"Salt": {
+			":Salt": {
 				S: aws.String(Salt),
 			},
 		},
+		UpdateExpression: aws.String("set Password = :Password, Salt = :Salt"),
+		ReturnValues:     aws.String("UPDATED_NEW"),
 	}
 	_, err := db.UpdateItem(input)
 
@@ -143,14 +147,19 @@ func updateEmployee(details *updateDetails) error {
 			"UserName": {
 				S: aws.String(details.UserName),
 			},
-			"Name": {
-				S: aws.String(details.Name),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":FullName": {
+				S: aws.String(details.FullName),
 			},
-			"PhoneNumber": {
+			":PhoneNumber": {
 				S: aws.String(details.PhoneNumber),
 			},
 		},
+		UpdateExpression: aws.String("set FullName = :FullName, PhoneNumber = :PhoneNumber"),
+		ReturnValues:     aws.String("UPDATED_NEW"),
 	}
+
 	_, err := db.UpdateItem(input)
 
 	if err != nil {

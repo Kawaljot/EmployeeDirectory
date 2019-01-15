@@ -30,11 +30,9 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	if proceed {
 		HTTPMethod := ""
 		if strings.Contains(req.Path, "changePassword") {
-
 			HTTPMethod = "PUTPassword"
 		} else if req.HTTPMethod == "GET" && req.Path == "/employees" {
 			HTTPMethod = "GETAll"
-
 		} else {
 			HTTPMethod = req.HTTPMethod
 		}
@@ -42,27 +40,27 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 
 			switch HTTPMethod {
 			case "POST":
-				return create(req)
+				return insertEmp(req)
 			case "GET":
-				return show(req, employeeData.EmployeeType, employeeData.UserName)
+				return getEmp(req, employeeData.EmployeeType, employeeData.UserName)
 			case "DELETE":
 				return deleteEmp(req)
 			case "PUT":
-				return update(req, employeeData.UserName, employeeData.EmployeeType)
+				return updateEmp(req, employeeData.UserName, employeeData.EmployeeType)
 			default:
 				return clientError(http.StatusMethodNotAllowed)
 			}
 
 		} else {
+			errorLogger.Println(HTTPMethod)
 
 			switch HTTPMethod {
 			case "GET":
-				return show(req, employeeData.EmployeeType, employeeData.UserName)
+				return getEmp(req, employeeData.EmployeeType, employeeData.UserName)
 			case "PUT":
-				return update(req, employeeData.UserName, employeeData.EmployeeType)
+				return updateEmp(req, employeeData.UserName, employeeData.EmployeeType)
 			case "PUTPassword":
 				return updatePwd(req, employeeData)
-
 			default:
 				return clientError(http.StatusMethodNotAllowed)
 			}
@@ -147,8 +145,9 @@ func deleteEmp(req events.APIGatewayProxyRequest) (events.APIGatewayProxyRespons
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusNoContent,
 	}, nil
+
 }
-func show(req events.APIGatewayProxyRequest, employeeType string, username string) (events.APIGatewayProxyResponse, error) {
+func getEmp(req events.APIGatewayProxyRequest, employeeType string, username string) (events.APIGatewayProxyResponse, error) {
 	if req.PathParameters["username"] != "" && (req.PathParameters["username"] == username || employeeType == "Admin") {
 
 		details, err := getEmployeedata(req.PathParameters["username"])
@@ -178,7 +177,7 @@ func show(req events.APIGatewayProxyRequest, employeeType string, username strin
 
 }
 
-func create(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func insertEmp(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	if req.Headers["Content-Type"] != "application/json" {
 		return clientError(http.StatusNotAcceptable)
@@ -191,7 +190,7 @@ func create(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		return clientError(http.StatusUnprocessableEntity)
 	}
 
-	if emp.EmployeeType == "" || emp.UserName == "" || emp.Password == "" || emp.PhoneNumber == "" || emp.Name == "" {
+	if emp.EmployeeType == "" || emp.UserName == "" || emp.Password == "" || emp.PhoneNumber == "" || emp.FullName == "" {
 		return clientError(http.StatusBadRequest)
 	}
 
@@ -237,9 +236,12 @@ func updatePwd(req events.APIGatewayProxyRequest, emp *employee) (events.APIGate
 		}
 
 		if details.OldPassword == "" && details.Password == "" && details.ConfirmPassword == "" {
+			errorLogger.Println("Input data is not proper")
+			errorLogger.Println(details)
 			return clientError(http.StatusBadRequest)
 		}
 		if details.Password != details.ConfirmPassword {
+			errorLogger.Println("Password and Confirm Password Don't match")
 			return clientError(http.StatusBadRequest)
 		}
 
@@ -266,7 +268,7 @@ func updatePwd(req events.APIGatewayProxyRequest, emp *employee) (events.APIGate
 
 }
 
-func update(req events.APIGatewayProxyRequest, username string, employeeType string) (events.APIGatewayProxyResponse, error) {
+func updateEmp(req events.APIGatewayProxyRequest, username string, employeeType string) (events.APIGatewayProxyResponse, error) {
 
 	if req.PathParameters["username"] != "" && (req.PathParameters["username"] == username || employeeType == "Admin") {
 		if req.Headers["Content-Type"] != "application/json" {
@@ -280,7 +282,8 @@ func update(req events.APIGatewayProxyRequest, username string, employeeType str
 			return clientError(http.StatusUnprocessableEntity)
 		}
 
-		if details.PhoneNumber == "" || details.Name == "" {
+		if details.PhoneNumber == "" || details.FullName == "" {
+			errorLogger.Println("Invalid details")
 			return clientError(http.StatusBadRequest)
 		}
 		details.UserName = username
@@ -313,6 +316,7 @@ func serverError(err error) (events.APIGatewayProxyResponse, error) {
 }
 
 func clientError(status int) (events.APIGatewayProxyResponse, error) {
+
 	return events.APIGatewayProxyResponse{
 		StatusCode: status,
 		Body:       http.StatusText(status),
