@@ -15,7 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var usernameRegexp = regexp.MustCompile("^[a-zA-Z0-9_.+-]+@(?:(?:[a-zA-Z0-9-]+\\.)?[a-zA-Z]+\\.)?(test)\\.no$")
+var usernameRegexp = regexp.MustCompile("^[a-zA-Z0-9_.+-]+@(test)\\.no$")
 var errorLogger = log.New(os.Stderr, "ERROR ", log.Llongfile)
 var letterRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890")
 
