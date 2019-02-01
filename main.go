@@ -235,7 +235,7 @@ func updatePwd(req events.APIGatewayProxyRequest, emp *employee) (events.APIGate
 			return clientError(http.StatusUnprocessableEntity)
 		}
 
-		if details.OldPassword == "" && details.Password == "" && details.ConfirmPassword == "" {
+		if details.OldPassword == "" || details.Password == "" || details.ConfirmPassword == "" {
 			errorLogger.Println("Input data is not proper")
 			errorLogger.Println(details)
 			return clientError(http.StatusBadRequest)
